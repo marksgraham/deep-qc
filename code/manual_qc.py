@@ -19,5 +19,6 @@ if __name__== "__main__":
     args = parser.parse_args()
     y_human = manual_qc(args.num_vols)
     print(y_human)
-    #y_human = manual_qc()
-    #y_human = np.load('y_manual_103414.npy')    
+    np.save('y_manual.npy',y_human)
+    #y_human_loaded = np.load('y_manual.npy')    
+    #print(y_human_loaded)
