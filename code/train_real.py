@@ -22,7 +22,7 @@ from time import gmtime, strftime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report
 root_dir = os.path.abspath('..')
-
+set_gpu_usage_fraction(0.5)
 #view = 'coronal'
 view = 'saggital'
 

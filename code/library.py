@@ -14,8 +14,12 @@ from keras.models import Model
 import keras.backend as K
 from keras import models
 from keras.callbacks import ModelCheckpoint
+from keras.backend.tensorflow_backend import set_session
 
 from time import gmtime, strftime
+
+import tensorflow as tf
+
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report
@@ -318,3 +322,8 @@ def test_model(X_test,y_test,model_coronal,model_saggital,num_slices):
     #predictions_combined = np.concatenate((model_predictions_coronal,model_predictions_saggital),axis=1)
     predictions_combined = model_predictions_saggital
     return(predictions_combined)
+
+def set_gpu_usage_fraction(fraction):
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = fraction
+    set_session(tf.Session(config=config))

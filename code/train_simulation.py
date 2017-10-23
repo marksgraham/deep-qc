@@ -23,12 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report
 root_dir = os.path.abspath('..')
 
-import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
-set_session(tf.Session(config=config))
-
+set_gpu_usage_fraction(0.5)
 
 mode='three_class'
 #view = 'coronal'
@@ -103,10 +98,11 @@ validation_data = validation_generator.flow(X_test,to_categorical(y_test,2),batc
 
 model = setup_model()
 model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=20,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
+save_model(model_trained_saggital,('keras_logs/saggital_'+str(i)+'.h5'))
 
 #Find optimal threshold to maximise f1 score
 X,y = fetch_real_data('../data/sourcedata/',1)
-predictions = test_model(X,y_,model_trained,model_trained,30)
+predictions = test_model(X,y,model_trained,model_trained,30)
 best_score = 0
 best_thresh = 0
 for threshold in range(10,90,1):
