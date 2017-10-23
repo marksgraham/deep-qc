@@ -47,6 +47,33 @@ def fetch_real_data(base_dir,num_subjects):
                 counter += 1
     return X,y
 
+def fetch_sim_data(base_dir,num_subjects,mode='two_class'):
+    '''Load in simulated data and motion files.'''
+    subject_list = os.listdir((os.path.join(base_dir)))
+    subject_list = [item for item in subject_list if item.startswith('.') == False] #Filter .DS_STORE
+    subject_list = sorted(subject_list) #sort in numerical order to make OS independent
+    counter = 0
+    X = np.zeros((108*num_subjects,72,86,55))
+    y = np.zeros(108*num_subjects)
+    X_subject = np.zeros((72,86,55,108))
+    y_subject = np.zeros(108)
+    for subject_index, subject_number in enumerate(subject_list):
+        if subject_index < num_subjects:
+            data_path = os.path.join(base_dir,subject_number,'data.nii.gz')
+            if os.path.isfile(data_path):
+                data_header = nib.load(data_path)
+                X_subject = data_header.get_data()
+                for i in range(108):
+                    motion = np.loadtxt(os.path.join(base_dir,subject_number,'motion/motion'+str(i)+'.txt'))
+                    y_subject[i] = create_labels(motion, translation_threshold=2.5, rotation_threshold = 2.5,mode=mode)
+                start_index = counter*108
+                end_index = (counter+1)*108
+                X[start_index:end_index,:] = np.moveaxis(X_subject,3,0)
+                y[start_index:end_index] = y_subject
+                counter += 1
+    return X,y
+
+
 def preprocess_data_coronal(X,target_height=299,target_width=299, base_slice=64,rescale=False,):
     '''Convert each MR volume to three slices through a single plane, scales the data and resamples
     to 299 by 299 pixels. Optionally performs augmentation.'''   
@@ -286,7 +313,7 @@ if run_train == True:
 	    model_trained_coronal = train_model(X_train_coronal[:172*3*i],X_val_coronal,y_train_coronal[:172*3*i],y_val_coronal,model,20)
 	    save_model(model_trained_coronal,('keras_logs/coronal_'+str(i)+'.h5'))
 	    
-run_test = True
+run_test = False
 if run_test ==  True:
 	#Test
 	#Fetch test data
@@ -309,3 +336,16 @@ if run_test ==  True:
 	    print(classification_report(y_test!=0,y_pred))
 	    print(confusion_matrix(y_test!=0,y_pred))
 	np.save(predictions_combined_all,'predictions_combined_all.npy')
+
+test_on_sim_data = True
+if test_on_sim_data == True:
+    X,y = fetch_real_data('../data/sourcedata/',1)
+    num_slices = 30
+    model_trained_saggital = models.load_model('../data_old/keras_logs/saggital_1.h5')
+    model_trained_coronal = model_trained_saggital
+    predictions = test_model(X,y,model_trained_coronal,model_trained_saggital,num_slices)
+    for threshold in range(0.05,0.9,0.05):
+        print(threshold)
+        y_pred = np.mean(predictions,axis=1)>threshold
+        print(classification_report(y!=0,y_pred))
+        print(confusion_matrix(y!=0,y_pred))
