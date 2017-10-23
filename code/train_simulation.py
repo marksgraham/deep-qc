@@ -20,7 +20,7 @@ from keras.callbacks import ModelCheckpoint
 from time import gmtime, strftime
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report, f1_score
 root_dir = os.path.abspath('..')
 
 set_gpu_usage_fraction(0.5)
@@ -97,21 +97,25 @@ train_data = train_generator.flow(X_train,to_categorical(y_train,2),batch_size=t
 validation_data = validation_generator.flow(X_test,to_categorical(y_test,2),batch_size=validation_batch_size,shuffle=False)
 
 model = setup_model()
-model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=20,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
-save_model(model_trained_saggital,('keras_logs/saggital_'+str(i)+'.h5'))
+model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
+#save_model(model_trained_saggital,('keras_logs/saggital_'+str(i)+'.h5'))
 
 #Find optimal threshold to maximise f1 score
-X,y = fetch_real_data('../data/sourcedata/',1)
+X,y = fetch_real_data('../data/sourcedata/',3,2)
+#model_trained = models.load_model('keras_logs/2017-10-23-12-43-22.epoch19-lossval0.16.hdf5')
 predictions = test_model(X,y,model_trained,model_trained,30)
 best_score = 0
 best_thresh = 0
 for threshold in range(10,90,1):
 	thresh  = threshold / 100
-	y_pred = predictions > thresh
+	y_pred = np.mean(predictions,axis=1) > thresh 
 	score = f1_score(y!=0,y_pred)
 	if score > best_score:
 		best_score = score
-		best_thres = thresh
+		best_thresh = thresh
 
-print('Best f1 score:',score)
+print('Best f1 score:',best_score)
 print('Best threshold:',best_thresh)
+y_pred_best = np.mean(predictions,axis=1) > best_thresh
+print(classification_report((y!=0),y_pred_best))
+print(confusion_matrix((y!=0),y_pred_best))

@@ -30,10 +30,11 @@ def fetch_real_data(base_dir,num_subjects,min_subject=0):
     subject_list = os.listdir((os.path.join(base_dir)))
     subject_list = [item for item in subject_list if item.startswith('sub') == True] #Filter everything but subjects
     subject_list = sorted(subject_list) #sort in numerical order to make OS independent
+    print(subject_list)
     counter = 0
     num_vols=172
-    X = np.zeros((num_vols*num_subjects,128,128,64))
-    y = np.zeros(num_vols*num_subjects)
+    X = np.zeros((num_vols*(num_subjects-min_subject),128,128,64))
+    y = np.zeros(num_vols*(num_subjects-min_subject))
     X_subject = np.zeros((128,128,64,num_vols))
     y_subject = np.zeros(num_vols)
     for subject_index, subject_number in enumerate(subject_list):
@@ -143,7 +144,6 @@ def preprocess_data_saggital(X,target_height=299,target_width=299, base_slice=64
     #slices = [22,36,50] #Planes to slice
     slices = np.array([base_slice,base_slice,base_slice]) #Planes to slice
     pad_max = np.max([X.shape[2],X.shape[3]]) #Width to pad images to
-    print(pad_max)
     num_volumes = X.shape[0]
     height = X.shape[1]
     width = X.shape[2]

@@ -20,7 +20,7 @@ from keras.callbacks import ModelCheckpoint
 from time import gmtime, strftime
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report, f1_score
 root_dir = os.path.abspath('..')
 set_gpu_usage_fraction(0.5)
 
@@ -31,7 +31,7 @@ X,y = fetch_real_data('../data/sourcedata',10,8)
 print(X.shape,y.shape)
 
 #Best sim
-model_saggital=   models.load_model('keras_logs/2017-10-13-13-50-06.epoch29-lossval0.21.hdf5')
+model_saggital=   models.load_model('keras_logs/2017-10-23-12-43-22.epoch19-lossval0.16.hdf5')
 #model_coronal = models.load_model('keras_logs/2017-10-17-10-22-15.epoch19-lossval0.16.hdf5')
 
 #Best real:
@@ -44,19 +44,27 @@ validation_generator = ImageDataGenerator(
 
 num_slices = 30
 validation_batch_size = 43
-num_validation_steps = X_test.shape[0]/validation_batch_size
-model_predictions_saggital = np.zeros((X_test.shape[0],num_slices))
-y_test_fake = np.ones((X_test.shape[0]))
+num_validation_steps = X.shape[0]/validation_batch_size
+model_predictions = np.zeros((X.shape[0],num_slices))
+y_test_fake = np.ones((X.shape[0]))
 
 for i in range(num_slices):
     #saggital
     X_test_slice = preprocess_data_saggital(X,base_slice = 35+2*i)  
     #Redefine validation generator to reset
     validation_data_for_testing = validation_generator.flow(X_test_slice,y_test_fake,batch_size=validation_batch_size,shuffle=False)
-    model_predictions_saggital[:,i] = model_saggital.predict_generator(validation_data_for_testing,num_validation_steps)[:,1]
+    model_predictions[:,i] = model_saggital.predict_generator(validation_data_for_testing,num_validation_steps)[:,1]
 
     print('Slices complete:',i)
 
-y_pred = np.mean(predictions_combined_sim,axis=1) > 0.84
+y_pred = np.mean(model_predictions,axis=1) > 0.89
+print(classification_report((y!=0),y_pred))
+print(confusion_matrix((y!=0),y_pred))
+
+y_pred = np.mean(model_predictions,axis=1) > 0.91
+print(classification_report((y!=0),y_pred))
+print(confusion_matrix((y!=0),y_pred))
+
+y_pred = np.mean(model_predictions,axis=1) > 0.86
 print(classification_report((y!=0),y_pred))
 print(confusion_matrix((y!=0),y_pred))
