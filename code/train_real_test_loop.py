@@ -337,15 +337,15 @@ if run_test ==  True:
 	    print(confusion_matrix(y_test!=0,y_pred))
 	np.save(predictions_combined_all,'predictions_combined_all.npy')
 
-test_on_sim_data = True
-if test_on_sim_data == True:
-    X,y = fetch_real_data('../data/sourcedata/',1)
+adjust_thres_real_data = True
+if adjust_thres_real_data == True:
+    X,y = fetch_real_data('../data/sourcedata/',2)
     num_slices = 30
-    model_trained_saggital = models.load_model('../data_old/keras_logs/saggital_1.h5')
+    model_trained_saggital = models.load_model('keras_logs/saggital_2.h5')
     model_trained_coronal = model_trained_saggital
     predictions = test_model(X,y,model_trained_coronal,model_trained_saggital,num_slices)
-    for threshold in range(0.05,0.9,0.05):
-        print(threshold)
-        y_pred = np.mean(predictions,axis=1)>threshold
+    for threshold in range(1,9):
+        print(threshold*0.1)
+        y_pred = np.mean(predictions,axis=1)>threshold*0.1
         print(classification_report(y!=0,y_pred))
         print(confusion_matrix(y!=0,y_pred))
