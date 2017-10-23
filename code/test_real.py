@@ -24,7 +24,6 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, c
 root_dir = os.path.abspath('..')
 set_gpu_usage_fraction(0.5)
 
-test_vols= 172*8
 
 X,y = fetch_real_data('../data/sourcedata/test/',3)
 
@@ -57,14 +56,7 @@ for i in range(num_slices):
 
     print('Slices complete:',i)
 
-y_pred = np.mean(model_predictions,axis=1) > 0.5
+y_pred = np.mean(model_predictions,axis=1) > 0.59
 print(classification_report((y!=0),y_pred))
 print(confusion_matrix((y!=0),y_pred))
-
-y_pred = np.mean(model_predictions,axis=1) > 0.35
-print(classification_report((y!=0),y_pred))
-print(confusion_matrix((y!=0),y_pred))
-
-y_pred = np.mean(model_predictions,axis=1) > 0.3
-print(classification_report((y!=0),y_pred))
-print(confusion_matrix((y!=0),y_pred))
+np.save('misc_files/y_pred_real.npy',y_pred)

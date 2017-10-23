@@ -89,7 +89,7 @@ model = setup_model()
 
 del X_train,X_test
 
-X,y = fetch_real_data('../data/sourcedata/',2)
+X,y = fetch_real_data('../data/sourcedata/',5)
 
 #Find optimal threshold to maximise f1 score
 model_trained = models.load_model('keras_logs/2017-10-23-14-32-31.epoch29-lossval0.20.hdf5')
