@@ -26,16 +26,16 @@ set_gpu_usage_fraction(0.5)
 
 test_vols= 172*8
 
-X,y = fetch_real_data('../data/sourcedata',10,8)
+X,y = fetch_real_data('../data/sourcedata/test/',3)
 
 print(X.shape,y.shape)
 
 #Best sim
-model_saggital=   models.load_model('keras_logs/2017-10-23-12-43-22.epoch19-lossval0.16.hdf5')
+#model_saggital=   models.load_model('keras_logs/2017-10-23-14-12-08.epoch29-lossval0.21.hdf5')
 #model_coronal = models.load_model('keras_logs/2017-10-17-10-22-15.epoch19-lossval0.16.hdf5')
 
 #Best real:
-#model_saggital=   models.load_model('keras_logs/real_2017-10-13-14-27-04.epoch29-lossval0.18.hdf5')
+model_saggital=   models.load_model('keras_logs/2017-10-23-14-32-31.epoch29-lossval0.20.hdf5')
 #model_coronal = models.load_model('keras_logs/real_2017-10-13-15-00-08.epoch29-lossval0.19.hdf5')
 
 validation_generator = ImageDataGenerator(
@@ -57,14 +57,14 @@ for i in range(num_slices):
 
     print('Slices complete:',i)
 
-y_pred = np.mean(model_predictions,axis=1) > 0.89
+y_pred = np.mean(model_predictions,axis=1) > 0.5
 print(classification_report((y!=0),y_pred))
 print(confusion_matrix((y!=0),y_pred))
 
-y_pred = np.mean(model_predictions,axis=1) > 0.91
+y_pred = np.mean(model_predictions,axis=1) > 0.35
 print(classification_report((y!=0),y_pred))
 print(confusion_matrix((y!=0),y_pred))
 
-y_pred = np.mean(model_predictions,axis=1) > 0.86
+y_pred = np.mean(model_predictions,axis=1) > 0.3
 print(classification_report((y!=0),y_pred))
 print(confusion_matrix((y!=0),y_pred))

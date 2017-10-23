@@ -85,25 +85,26 @@ train_data = train_generator.flow(X_train,to_categorical(y_train,2),batch_size=t
 validation_data = validation_generator.flow(X_test,to_categorical(y_test,2),batch_size=validation_batch_size,shuffle=False)
 
 model = setup_model()
-model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=20,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
+#model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
 
 del X_train,X_test
 
 X,y = fetch_real_data('../data/sourcedata/',2)
 
 #Find optimal threshold to maximise f1 score
+model_trained = models.load_model('keras_logs/2017-10-23-14-32-31.epoch29-lossval0.20.hdf5')
 predictions = test_model(X,y,model_trained,model_trained,30)
 best_score = 0
 best_thresh = 0
 for threshold in range(10,90,1):
 	thresh  = threshold / 100
 	y_pred = np.mean(predictions,axis=1) > thresh
-	score = f1_score(y_train!=0,y_pred)
+	score = f1_score(y!=0,y_pred)
 	if score > best_score:
 		best_score = score
 		best_thresh = thresh
 
-print('Best f1 score:',score)
+print('Best f1 score:',best_score)
 print('Best threshold:',best_thresh)
 y_pred_best = np.mean(predictions,axis=1) > best_thresh
 print(classification_report((y!=0),y_pred_best))
