@@ -29,15 +29,17 @@ mode='three_class'
 #view = 'coronal'
 view = 'saggital'
 
-X, y = fetch_sim_data(os.path.join(root_dir,'data/sims-moremotion'),10,mode=mode,translation_threshold=2.5, rotation_threshold = 2.5)
+num_vols = 172
+
+X, y = fetch_sim_data(os.path.join(root_dir,'data/sims-moremotion-dhcp'),5,mode=mode,translation_threshold=2.5, rotation_threshold = 2.5,volumes_per_subject=num_vols)
+
 print('Volumes with no motion:',np.sum(y==0))
 print('Volumes with severe motion:',np.sum(y==1))
 print('Volumes with moderate motion:',np.sum(y==2))
 
 #Load in training and validation data
-num_vols = 108
-num_train = 8
-num_test = 2
+num_train = 5
+num_test = 0
 slices_to_extract = [20,36,52]
 
 X_train = np.zeros((num_vols*num_train*len(slices_to_extract),299,299,3))
@@ -96,7 +98,7 @@ validation_examples = X_test.shape[0]
 train_data = train_generator.flow(X_train,to_categorical(y_train,2),batch_size=train_batch_size,shuffle=True)
 validation_data = validation_generator.flow(X_test,to_categorical(y_test,2),batch_size=validation_batch_size,shuffle=False)
 
-train_now = False
+train_now = True
 if train_now == True:
 	model = setup_model()
 	model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)

@@ -52,16 +52,16 @@ def fetch_real_data(base_dir,num_subjects,min_subject=0):
                 counter += 1
     return X,y
 
-def fetch_sim_data(base_dir,num_subjects,mode='two_class',translation_threshold=2.5, rotation_threshold = 2.5):
+def fetch_sim_data(base_dir,num_subjects,mode='two_class',translation_threshold=2.5, rotation_threshold = 2.5,volumes_per_subject=108):
     '''Load in simulated data and motion files.'''
     subject_list = os.listdir((os.path.join(base_dir)))
     subject_list = [item for item in subject_list if item.startswith('.') == False] #Filter .DS_STORE
     subject_list = sorted(subject_list) #sort in numerical order to make OS independent
     counter = 0
-    X = np.zeros((108*num_subjects,72,86,55))
-    y = np.zeros(108*num_subjects)
-    X_subject = np.zeros((72,86,55,108))
-    y_subject = np.zeros(108)
+    X = np.zeros((volumes_per_subject*num_subjects,72,86,55))
+    y = np.zeros(volumes_per_subject*num_subjects)
+    X_subject = np.zeros((72,86,55,volumes_per_subject))
+    y_subject = np.zeros(volumes_per_subject)
     for subject_index, subject_number in enumerate(subject_list):
         if subject_index < num_subjects:
             data_path = os.path.join(base_dir,subject_number,'data.nii.gz')
@@ -69,11 +69,11 @@ def fetch_sim_data(base_dir,num_subjects,mode='two_class',translation_threshold=
                 print('Including:',subject_number)
                 data_header = nib.load(data_path)
                 X_subject = data_header.get_data()
-                for i in range(108):
+                for i in range(volumes_per_subject):
                     motion = np.loadtxt(os.path.join(base_dir,subject_number,'motion/motion'+str(i)+'.txt'))
                     y_subject[i] = create_labels(motion, translation_threshold, rotation_threshold,mode=mode)
-                start_index = counter*108
-                end_index = (counter+1)*108
+                start_index = counter*volumes_per_subject
+                end_index = (counter+1)*volumes_per_subject
                 X[start_index:end_index,:] = np.moveaxis(X_subject,3,0)
                 y[start_index:end_index] = y_subject
                 counter += 1
