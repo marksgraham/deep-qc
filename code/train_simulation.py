@@ -20,7 +20,7 @@ from keras.callbacks import ModelCheckpoint
 from time import gmtime, strftime
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report, f1_score
+from sklearn.metrics import confusion_matrix, recall_score,accuracy_score, precision_score, classification_report, f1_score
 root_dir = os.path.abspath('..')
 
 set_gpu_usage_fraction(0.5)
@@ -29,7 +29,7 @@ mode='three_class'
 #view = 'coronal'
 view = 'saggital'
 
-X, y = fetch_sim_data(os.path.join(root_dir,'data/sims-moremotion'),10,mode=mode)
+X, y = fetch_sim_data(os.path.join(root_dir,'data/sims-moremotion'),10,mode=mode,translation_threshold=2.5, rotation_threshold = 2.5)
 print('Volumes with no motion:',np.sum(y==0))
 print('Volumes with severe motion:',np.sum(y==1))
 print('Volumes with moderate motion:',np.sum(y==2))
@@ -96,26 +96,39 @@ validation_examples = X_test.shape[0]
 train_data = train_generator.flow(X_train,to_categorical(y_train,2),batch_size=train_batch_size,shuffle=True)
 validation_data = validation_generator.flow(X_test,to_categorical(y_test,2),batch_size=validation_batch_size,shuffle=False)
 
-model = setup_model()
-model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
+train_now = False
+if train_now == True:
+	model = setup_model()
+	model_trained = train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_size=train_batch_size,validation_batch_size=validation_batch_size)
+if train_now !=True:
+        model_trained = models.load_model('keras_logs/2017-10-23-14-12-08.epoch29-lossval0.21.hdf5')
 #save_model(model_trained_saggital,('keras_logs/saggital_'+str(i)+'.h5'))
 
 #Find optimal threshold to maximise f1 score
-X,y = fetch_real_data('../data/sourcedata/',3,2)
-#model_trained = models.load_model('keras_logs/2017-10-23-12-43-22.epoch19-lossval0.16.hdf5')
+num_datasets = 5
+X,y = fetch_real_data('../data/sourcedata/',num_datasets,1)
 predictions = test_model(X,y,model_trained,model_trained,30)
-best_score = 0
-best_thresh = 0
-for threshold in range(10,90,1):
-	thresh  = threshold / 100
-	y_pred = np.mean(predictions,axis=1) > thresh 
-	score = f1_score(y!=0,y_pred)
-	if score > best_score:
-		best_score = score
-		best_thresh = thresh
 
-print('Best f1 score:',best_score)
-print('Best threshold:',best_thresh)
-y_pred_best = np.mean(predictions,axis=1) > best_thresh
-print(classification_report((y!=0),y_pred_best))
-print(confusion_matrix((y!=0),y_pred_best))
+#Try for several different datasets
+for j in range(num_datasets):
+	print('Dataset:',j)
+	prediction_set = predictions[172*j:172*(j+1),:]
+	y_set = y[172*j:172*(j+1)]
+	best_score = 0
+	best_thresh = 0
+	for threshold in range(10,90,1):
+		thresh  = threshold / 100
+		y_pred = np.mean(prediction_set,axis=1) > thresh 
+		score = f1_score(y_set!=0,y_pred)
+		score_recall = recall_score(y_set!=0,y_pred)
+		if score > 0.9:
+			print(thresh,score)
+		if score > best_score:
+			best_score = score
+			best_thresh = thresh
+
+	print('Best f1 score:',best_score)
+	print('Best threshold:',best_thresh)
+	y_pred_best = np.mean(prediction_set,axis=1) > best_thresh
+	print(classification_report((y_set!=0),y_pred_best))
+	print(confusion_matrix((y_set!=0),y_pred_best))

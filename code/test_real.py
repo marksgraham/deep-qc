@@ -22,19 +22,19 @@ from time import gmtime, strftime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, classification_report, f1_score
 root_dir = os.path.abspath('..')
-set_gpu_usage_fraction(0.5)
+set_gpu_usage_fraction(0.45)
 
 
-X,y = fetch_real_data('../data/sourcedata/test/',3)
+X,y = fetch_real_data('../data/sourcedata/',10,8)
 
 print(X.shape,y.shape)
 
 #Best sim
-#model_saggital=   models.load_model('keras_logs/2017-10-23-14-12-08.epoch29-lossval0.21.hdf5')
+model_saggital=   models.load_model('keras_logs/2017-10-25-15-40-15.epoch29-lossval0.03.hdf5')
 #model_coronal = models.load_model('keras_logs/2017-10-17-10-22-15.epoch19-lossval0.16.hdf5')
 
 #Best real:
-model_saggital=   models.load_model('keras_logs/2017-10-23-14-32-31.epoch29-lossval0.20.hdf5')
+#model_saggital=   models.load_model('keras_logs/2017-10-23-14-32-31.epoch29-lossval0.20.hdf5')
 #model_coronal = models.load_model('keras_logs/real_2017-10-13-15-00-08.epoch29-lossval0.19.hdf5')
 
 validation_generator = ImageDataGenerator(
@@ -55,8 +55,11 @@ for i in range(num_slices):
     model_predictions[:,i] = model_saggital.predict_generator(validation_data_for_testing,num_validation_steps)[:,1]
 
     print('Slices complete:',i)
-
-y_pred = np.mean(model_predictions,axis=1) > 0.59
-print(classification_report((y!=0),y_pred))
-print(confusion_matrix((y!=0),y_pred))
-np.save('misc_files/y_pred_real.npy',y_pred)
+np.save('predictions_dropout.npy',model_predictions)
+thresholds = [0.7,0.75,0.77,0.8,0.81,0.82,0.83,0.84,0.87]
+for thresh in thresholds:
+	print(thresh)
+	y_pred = np.mean(model_predictions,axis=1) > thresh
+	print(classification_report((y!=0),y_pred))
+	print(confusion_matrix((y!=0),y_pred))
+	#np.save('misc_files/y_pred_real.npy',y_pred)

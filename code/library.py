@@ -52,7 +52,7 @@ def fetch_real_data(base_dir,num_subjects,min_subject=0):
                 counter += 1
     return X,y
 
-def fetch_sim_data(base_dir,num_subjects,mode='two_class'):
+def fetch_sim_data(base_dir,num_subjects,mode='two_class',translation_threshold=2.5, rotation_threshold = 2.5):
     '''Load in simulated data and motion files.'''
     subject_list = os.listdir((os.path.join(base_dir)))
     subject_list = [item for item in subject_list if item.startswith('.') == False] #Filter .DS_STORE
@@ -71,7 +71,7 @@ def fetch_sim_data(base_dir,num_subjects,mode='two_class'):
                 X_subject = data_header.get_data()
                 for i in range(108):
                     motion = np.loadtxt(os.path.join(base_dir,subject_number,'motion/motion'+str(i)+'.txt'))
-                    y_subject[i] = create_labels(motion, translation_threshold=2.5, rotation_threshold = 2.5,mode=mode)
+                    y_subject[i] = create_labels(motion, translation_threshold, rotation_threshold,mode=mode)
                 start_index = counter*108
                 end_index = (counter+1)*108
                 X[start_index:end_index,:] = np.moveaxis(X_subject,3,0)
@@ -273,7 +273,7 @@ def train_model(X_train,X_test,y_train,y_test,model,num_epochs=30,train_batch_si
     now = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
     filename = 'keras_logs/'+now+'.epoch{epoch:02d}-lossval{val_loss:.2f}.hdf5'
     checkpoint = ModelCheckpoint(filepath=filename,
-                            period=10)
+                            period=30)
 
     train_steps_per_epoch = train_examples/train_batch_size
     validation_steps_per_epoch = validation_examples/validation_batch_size
